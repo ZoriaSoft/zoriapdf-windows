@@ -1,0 +1,13 @@
+[workspace]
+members = ["crates/pdf-core", "src-tauri"]
+exclude = ["vendor/lopdf"]
+resolver = "2"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+opt-level = 3
+
+[patch.crates-io]
+lopdf = { path = "vendor/lopdf" }

@@ -1,0 +1,29 @@
+{
+  "architecture": "Tauri 2 Windows app, React/Vite UI, native Rust pdf-core library. All documents stay local. Keep original inputs untouched. Origami visual language: paper #FAFAF7, ink #1C1F1E, green #0F5C4A, Manrope.",
+  "commands": {
+    "open_documents": "{paths:string[], password?:string} -> DocumentInfo[]",
+    "close_document": "{id:string} -> void",
+    "render_page": "{id:string,page:number,width:number} -> RenderedPage",
+    "page_text": "{id:string,page:number} -> string",
+    "search_document": "{id:string,query:string} -> SearchHit[]",
+    "run_operation": "{request:OperationRequest} -> OperationResult; emits job-progress {id,completed,total,message}; one active job at a time",
+    "cancel_operation": "{id:string} -> void",
+    "initial_paths": "{} -> string[]",
+    "print_document": "{id:string} -> void; native Windows PrintDlgW/GDI printing",
+    "reveal_output": "{path:string} -> void",
+    "ocr_status": "{} -> {available:boolean,enginePath?:string,pack:{url:string,sha256:string,sizeMb:number}}"
+  },
+  "types": {
+    "DocumentInfo": "{id:string,path:string,name:string,pages:number,size:number,revision:string,pageSizes?:[number,number][]}; revision is the content fingerprint; every explicit reopen invalidates rendered/text/search caches, while annotations survive only an unchanged revision",
+    "RenderedPage": "{dataUrl:string,width:number,height:number}",
+    "SearchHit": "{page:number,text:string}",
+    "RedactRect": "{page:number,x:number,y:number,width:number,height:number}; coordinates normalized 0..1 from rendered top-left",
+    "Annotation": "{page:number,x:number,y:number,width:number,height:number,kind:'highlight'|'text'|'ink'|'signature',text?:string,points?:number[][],imagePath?:string}; normalized top-left coords",
+    "OperationRequest": "{id:string,kind:string,inputs:string[],output:string,pages?:string,password?:string,inputPasswords?:Record<string,string>,newPassword?:string,text?:string,rotation?:number,dpi?:number,imagePaths?:string[],rects?:RedactRect[],annotation?:Annotation,annotations?:Annotation[],ocr?:boolean,downloadUrl?:string,sha256?:string,targetDir?:string}; credentials are bound to exact input paths, never inherited from an unrelated active tab; an explicit source password takes precedence over cached credentials for single-input operations; merge resolves each input separately; engine applies all annotations when batch present; pdf-to-word detects scanned pages per page and uses local OCR automatically (ocr:false opts out); install-ocr accepts only the pinned archive URL/hash and default per-user installation directory",
+    "OperationResult": "{outputs:string[],message:string}",
+    "OutputFreshness": "Engine refuses existing output files and non-empty output directories before work; stages complete results on the destination volume, publishes without replacement even when a destination appears during processing, preserves destination NTFS access controls, and does not publish partial results on cancellation",
+    "Progress": "{id:string,completed:number,total:number,message:string}"
+  },
+  "operationKinds": ["merge","extract","split","remove","reorder","rotate","watermark","number","protect","unlock","compress","images-to-pdf","pdf-to-images","redact","annotate","extract-text","ocr","pdf-to-word","word-to-pdf","image-to-word","install-ocr"],
+  "invariants": ["Pages are 1-based. Page ranges accept 1,3-5 and reverse 5-1 for reorder.","No overwriting original inputs; output collisions explicitly refused by engine.","Output is file for most ops, directory for split/pdf-to-images/ocr.","Tauri native dialog plugin for open/save. Native drag-drop and CLI file association handled.","No fake browser-mode backend. UI reports native bridge unavailable in browser.","No builds/tests/formatters by subagents mid-flight; parent integration verifies afterward."]
+}

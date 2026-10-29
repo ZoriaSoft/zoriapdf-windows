@@ -1,0 +1,13 @@
+/node_modules/
+/dist/
+/target/
+/.native-cache/
+/src-tauri/resources/
+/src-tauri/gen/
+/smoke-output/
+*.log
+*.tmp
+.env*
+/ocr-stage/
+__pycache__/
+*.pyc
